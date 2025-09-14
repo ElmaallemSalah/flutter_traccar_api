@@ -1,4 +1,4 @@
-class NotificationModel {
+class Notification {
   final int? id;
   final String type;
   final bool always;
@@ -9,7 +9,7 @@ class NotificationModel {
   final int? calendarId;
   final String? notificators;
 
-  NotificationModel({
+  Notification({
     this.id,
     required this.type,
     this.always = false,
@@ -21,8 +21,8 @@ class NotificationModel {
     this.notificators,
   });
 
-  factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    return NotificationModel(
+  factory Notification.fromJson(Map<String, dynamic> json) {
+    return Notification(
       id: json['id'],
       type: json['type'] ?? '',
       always: json['always'] ?? false,
@@ -52,7 +52,7 @@ class NotificationModel {
     return data;
   }
 
-  NotificationModel copyWith({
+  Notification copyWith({
     int? id,
     String? type,
     bool? always,
@@ -63,7 +63,7 @@ class NotificationModel {
     int? calendarId,
     String? notificators,
   }) {
-    return NotificationModel(
+    return Notification(
       id: id ?? this.id,
       type: type ?? this.type,
       always: always ?? this.always,

@@ -1,7 +1,7 @@
 // ignore_for_file: dead_code
 
-class RepportDistance {
-  RepportDistance({
+class ReportDistance {
+  ReportDistance({
     required this.description,
     required this.startKm,
     required this.endKm,
@@ -31,7 +31,7 @@ int? get getdistanceTraveled {
         .toInt();
       return 0;
   }
-  factory RepportDistance.fromJson(Map<String, dynamic> json) => RepportDistance(
+  factory ReportDistance.fromJson(Map<String, dynamic> json) => ReportDistance(
         description: json["description"],
         startKm: json["start_km"],
         endKm: json["end_km"],

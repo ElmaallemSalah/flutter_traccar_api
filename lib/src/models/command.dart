@@ -1,4 +1,4 @@
-class CommandModel {
+class Command {
   int? id;
   Attributes? attributes;
   int? deviceId;
@@ -6,7 +6,7 @@ class CommandModel {
   bool? textChannel;
   String? description;
 
-  CommandModel(
+  Command(
       {this.id,
       this.attributes,
       this.deviceId,
@@ -14,7 +14,7 @@ class CommandModel {
       this.textChannel,
       this.description});
 
-  CommandModel.fromJson(Map<String, dynamic> json) {
+  Command.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     attributes = json['attributes'] != null
         ? Attributes.fromJson(json['attributes'])

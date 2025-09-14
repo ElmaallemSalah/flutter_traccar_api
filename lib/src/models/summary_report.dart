@@ -20,9 +20,9 @@ class ReportSummary {
   String? status;
 
 
-// set adressnow
-  set setAdressNow(String? adress) {
-    addressNow = adress;
+// set address now
+  set setAddressNow(String? address) {
+    addressNow = address;
   }
  int? get odometer {
     if (endOdometer != null) {
@@ -34,7 +34,7 @@ class ReportSummary {
     }
     return 0;
   }
-   int? get getStartOdometer {
+   int? get startOdometerValue {
     if (startOdometer != null) {
       return double.tryParse((startOdometer! / 1000).toString())!
           .toInt();
@@ -44,8 +44,7 @@ class ReportSummary {
     }
     return 0;
   }
-// ignore: non_constant_identifier_names
-int? get GetdistanceTraveled {
+int? get distanceTraveled {
     if (distance != null) {
       return double.tryParse((distance! / 1000).toString())!
           .toInt();
@@ -56,8 +55,7 @@ int? get GetdistanceTraveled {
     return 0;
   }
 
-// ignore: non_constant_identifier_names
-int? get GetMaxSpeed {
+int? get maxSpeedValue {
  
     if (maxSpeed != null) {
       return double.tryParse((maxSpeed!*1.852 ).toString())!
@@ -68,8 +66,7 @@ int? get GetMaxSpeed {
     }
     return 0;
   }
- // ignore: non_constant_identifier_names
- String GetDrivingTime() {
+ String getDrivingTime() {
   int milliseconds =engineHours!;
   int seconds = milliseconds ~/ 1000;
   int minutes = seconds ~/ 60;

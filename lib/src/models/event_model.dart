@@ -1,4 +1,4 @@
-class EventModel {
+class Event {
   int? id;
   Attributes? attributes;
   int? deviceId;
@@ -8,7 +8,7 @@ class EventModel {
   int? geofenceId;
   int? maintenanceId;
 
-  EventModel(
+  Event(
       {this.id,
       this.attributes,
       this.deviceId,
@@ -18,7 +18,7 @@ class EventModel {
       this.geofenceId,
       this.maintenanceId});
 
-  EventModel.fromJson(Map<String, dynamic> json) {
+  Event.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     attributes = json['attributes'] != null
         ? Attributes.fromJson(json['attributes'])

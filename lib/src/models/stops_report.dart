@@ -1,4 +1,4 @@
-class RepportStops {
+class StopsReport {
   int? deviceId;
   String? deviceName;
   int? duration;
@@ -10,7 +10,7 @@ class RepportStops {
   double? spentFuel;
   int? engineHours;
 
- RepportStops(
+ StopsReport(
       {this.deviceId,
       this.deviceName,
       this.duration,
@@ -22,7 +22,7 @@ class RepportStops {
       this.spentFuel,
       this.engineHours});
 
-  RepportStops.fromJson(Map<String, dynamic> json) {
+  StopsReport.fromJson(Map<String, dynamic> json) {
     deviceId = json['deviceId'];
     deviceName = json['deviceName'];
     duration = json['duration'];
