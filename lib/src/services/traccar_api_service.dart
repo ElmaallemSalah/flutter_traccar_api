@@ -16,19 +16,26 @@ import 'http_service.dart';
 import 'cache_manager.dart';
 import 'rate_limiter.dart';
 import 'request_batcher.dart';
+import 'websocket_service.dart';
 
 /// Main Traccar API service that provides all API endpoints
 /// with authentication and caching support
 class TraccarApiService {
   final AuthManager _authManager;
   late final HttpService _httpService;
+  late final WebSocketService _webSocketService;
 
   /// Creates an instance of TraccarApiService
   TraccarApiService({
     AuthManager? authManager,
     HttpClientConfig? httpConfig,
+    WebSocketConfig? webSocketConfig,
   }) : _authManager = authManager ?? AuthManager(httpConfig: httpConfig) {
     _httpService = _authManager.httpService;
+    _webSocketService = WebSocketService(
+      authManager: _authManager,
+      config: webSocketConfig,
+    );
   }
 
   /// Initializes the service by loading cached credentials
@@ -476,5 +483,38 @@ class TraccarApiService {
     } catch (e) {
       throw Exception('Failed to get positions: $e');
     }
+  }
+
+  // WebSocket Real-time Methods
+
+  /// Connects to WebSocket for real-time updates
+  /// Returns true if connection is successful
+  Future<bool> connectWebSocket() async {
+    return await _webSocketService.connect();
+  }
+
+  /// Disconnects from WebSocket
+  Future<void> disconnectWebSocket() async {
+    await _webSocketService.disconnect();
+  }
+
+  /// Gets WebSocket connection status
+  bool get isWebSocketConnected => _webSocketService.isConnected;
+
+  /// Stream of real-time device updates
+  Stream<List<Device>> get deviceUpdatesStream => _webSocketService.devicesStream;
+
+  /// Stream of real-time position updates
+  Stream<List<Position>> get positionUpdatesStream => _webSocketService.positionsStream;
+
+  /// Stream of real-time event updates
+  Stream<List<Event>> get eventUpdatesStream => _webSocketService.eventsStream;
+
+  /// Stream of WebSocket connection status changes
+  Stream<WebSocketStatus> get webSocketStatusStream => _webSocketService.statusStream;
+
+  /// Disposes of all resources including WebSocket connections
+  void dispose() {
+    _webSocketService.dispose();
   }
 }

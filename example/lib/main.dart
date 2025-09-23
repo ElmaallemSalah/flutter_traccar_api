@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_traccar_api/flutter_traccar_api.dart';
+import 'realtime_dashboard.dart';
 
 void main() {
   runApp(const TraccarApiExampleApp());
@@ -213,6 +214,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Text('Dashboard - ${_api.currentUsername ?? 'User'}'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.timeline),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => RealtimeDashboard(api: _api),
+                ),
+              );
+            },
+            tooltip: 'Real-time Dashboard',
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _logout,

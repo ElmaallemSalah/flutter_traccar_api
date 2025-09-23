@@ -48,6 +48,13 @@
 - ✅ Summary statistics
 - ✅ Distance calculations
 
+### 🔄 **Real-time WebSocket**
+- ✅ Live device status updates
+- ✅ Real-time position streaming
+- ✅ Event notifications (alarms, geofences)
+- ✅ Automatic reconnection & heartbeat
+- ✅ Connection status monitoring
+
 </td>
 </tr>
 </table>
@@ -231,6 +238,48 @@ class PositionService {
 }
 ```
 
+### 5️⃣ Real-time WebSocket Updates
+
+```dart
+class WebSocketService {
+  final api = FlutterTraccarApi.instance;
+
+  Future<void> startRealTimeUpdates() async {
+    // Connect to WebSocket
+    final connected = await api.connectWebSocket();
+    if (!connected) {
+      print('❌ Failed to connect to WebSocket');
+      return;
+    }
+
+    // Listen to real-time device updates
+    api.deviceUpdatesStream.listen((devices) {
+      print('📱 Device updates: ${devices.length} devices');
+    });
+
+    // Listen to real-time position updates
+    api.positionUpdatesStream.listen((positions) {
+      print('📍 Position updates: ${positions.length} positions');
+    });
+
+    // Listen to real-time events (alarms, geofences, etc.)
+    api.eventUpdatesStream.listen((events) {
+      print('🚨 Events: ${events.length} events');
+    });
+
+    // Monitor connection status
+    api.webSocketStatusStream.listen((status) {
+      print('🔗 WebSocket status: ${status.name}');
+    });
+  }
+
+  Future<void> stopRealTimeUpdates() async {
+    await api.disconnectWebSocket();
+    print('🔌 WebSocket disconnected');
+  }
+}
+```
+
 ---
 
 ## 💡 Examples
@@ -396,40 +445,229 @@ class ReportService {
 }
 ```
 
-### 🔄 Real-time Position Tracking
+### 🔄 Real-time WebSocket Updates
+
+The package provides powerful WebSocket functionality for real-time updates without polling:
+
+#### 🚀 Basic WebSocket Usage
 
 ```dart
 class RealTimeTracker {
   final api = FlutterTraccarApi.instance;
-  Timer? _timer;
-  final StreamController<List<Position>> _positionController = 
-      StreamController<List<Position>>.broadcast();
+  late StreamSubscription<List<Device>> _deviceSubscription;
+  late StreamSubscription<List<Position>> _positionSubscription;
+  late StreamSubscription<List<Event>> _eventSubscription;
+  late StreamSubscription<WebSocketStatus> _statusSubscription;
 
-  Stream<List<Position>> get positionStream => _positionController.stream;
+  Future<void> startRealTimeTracking() async {
+    // Connect to WebSocket
+    final connected = await api.connectWebSocket();
+    if (!connected) {
+      throw Exception('Failed to connect to WebSocket');
+    }
 
-  void startTracking(List<int> deviceIds, {Duration interval = const Duration(seconds: 30)}) {
-    _timer = Timer.periodic(interval, (_) async {
-      try {
-        final positions = await api.getPositions(
-          deviceIds: deviceIds,
-          from: DateTime.now().subtract(Duration(minutes: 5)),
-          to: DateTime.now(),
-        );
-        _positionController.add(positions);
-      } catch (e) {
-        print('❌ Error fetching positions: $e');
-      }
+    // Listen to real-time device updates
+    _deviceSubscription = api.deviceUpdatesStream.listen(
+      (devices) {
+        print('📱 Received ${devices.length} device updates');
+        // Handle device updates (status changes, etc.)
+      },
+      onError: (error) => print('❌ Device stream error: $error'),
+    );
+
+    // Listen to real-time position updates
+    _positionSubscription = api.positionUpdatesStream.listen(
+      (positions) {
+        print('📍 Received ${positions.length} position updates');
+        // Handle position updates (location changes)
+      },
+      onError: (error) => print('❌ Position stream error: $error'),
+    );
+
+    // Listen to real-time events
+    _eventSubscription = api.eventUpdatesStream.listen(
+      (events) {
+        print('🚨 Received ${events.length} events');
+        // Handle events (alarms, geofence violations, etc.)
+      },
+      onError: (error) => print('❌ Event stream error: $error'),
+    );
+
+    // Monitor WebSocket connection status
+    _statusSubscription = api.webSocketStatusStream.listen(
+      (status) {
+        switch (status) {
+          case WebSocketStatus.connected:
+            print('✅ WebSocket connected');
+            break;
+          case WebSocketStatus.disconnected:
+            print('❌ WebSocket disconnected');
+            break;
+          case WebSocketStatus.connecting:
+            print('🔄 WebSocket connecting...');
+            break;
+          case WebSocketStatus.reconnecting:
+            print('🔄 WebSocket reconnecting...');
+            break;
+          case WebSocketStatus.error:
+            print('❌ WebSocket error');
+            break;
+        }
+      },
+    );
+  }
+
+  Future<void> stopRealTimeTracking() async {
+    // Cancel all subscriptions
+    await _deviceSubscription.cancel();
+    await _positionSubscription.cancel();
+    await _eventSubscription.cancel();
+    await _statusSubscription.cancel();
+    
+    // Disconnect WebSocket
+    await api.disconnectWebSocket();
+  }
+
+  bool get isConnected => api.isWebSocketConnected;
+}
+```
+
+#### 🎯 Advanced WebSocket Configuration
+
+```dart
+// Initialize with custom WebSocket configuration
+await FlutterTraccarApi.initialize(
+  'https://your-traccar-server.com',
+  config: HttpClientConfig(
+    webSocketConfig: WebSocketConfig(
+      enableAutoReconnect: true,
+      maxReconnectAttempts: 5,
+      reconnectInterval: Duration(seconds: 5),
+      heartbeatInterval: Duration(seconds: 30),
+    ),
+  ),
+);
+```
+
+#### 📱 Flutter Widget Integration
+
+```dart
+class LiveTrackingWidget extends StatefulWidget {
+  @override
+  _LiveTrackingWidgetState createState() => _LiveTrackingWidgetState();
+}
+
+class _LiveTrackingWidgetState extends State<LiveTrackingWidget> {
+  final api = FlutterTraccarApi.instance;
+  List<Device> devices = [];
+  List<Position> positions = [];
+  WebSocketStatus connectionStatus = WebSocketStatus.disconnected;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWebSocket();
+  }
+
+  Future<void> _initializeWebSocket() async {
+    // Connect to WebSocket
+    await api.connectWebSocket();
+
+    // Listen to streams
+    api.deviceUpdatesStream.listen((updatedDevices) {
+      setState(() => devices = updatedDevices);
+    });
+
+    api.positionUpdatesStream.listen((updatedPositions) {
+      setState(() => positions = updatedPositions);
+    });
+
+    api.webSocketStatusStream.listen((status) {
+      setState(() => connectionStatus = status);
     });
   }
 
-  void stopTracking() {
-    _timer?.cancel();
-    _timer = null;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Live Tracking'),
+        actions: [
+          Icon(
+            connectionStatus == WebSocketStatus.connected
+                ? Icons.wifi
+                : Icons.wifi_off,
+            color: connectionStatus == WebSocketStatus.connected
+                ? Colors.green
+                : Colors.red,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Connection status
+          Container(
+            padding: EdgeInsets.all(8),
+            color: connectionStatus == WebSocketStatus.connected
+                ? Colors.green.withOpacity(0.1)
+                : Colors.red.withOpacity(0.1),
+            child: Row(
+              children: [
+                Icon(
+                  connectionStatus == WebSocketStatus.connected
+                      ? Icons.check_circle
+                      : Icons.error,
+                  color: connectionStatus == WebSocketStatus.connected
+                      ? Colors.green
+                      : Colors.red,
+                ),
+                SizedBox(width: 8),
+                Text('Status: ${connectionStatus.name}'),
+              ],
+            ),
+          ),
+          // Live device list
+          Expanded(
+            child: ListView.builder(
+              itemCount: devices.length,
+              itemBuilder: (context, index) {
+                final device = devices[index];
+                final position = positions
+                    .where((p) => p.deviceId == device.id)
+                    .lastOrNull;
+                
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: device.status == 'online'
+                        ? Colors.green
+                        : Colors.grey,
+                    child: Icon(Icons.device_hub, color: Colors.white),
+                  ),
+                  title: Text(device.name ?? 'Unknown Device'),
+                  subtitle: position != null
+                      ? Text(
+                          'Lat: ${position.latitude?.toStringAsFixed(6)}, '
+                          'Lng: ${position.longitude?.toStringAsFixed(6)}\n'
+                          'Speed: ${position.speed?.toStringAsFixed(1)} km/h',
+                        )
+                      : Text('No position data'),
+                  trailing: Text(
+                    position?.deviceTime ?? 'No update',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
+  @override
   void dispose() {
-    stopTracking();
-    _positionController.close();
+    api.disconnectWebSocket();
+    super.dispose();
   }
 }
 ```

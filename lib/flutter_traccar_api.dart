@@ -16,6 +16,7 @@ import 'src/services/http_service.dart';
 import 'src/services/rate_limiter.dart';
 import 'src/services/request_batcher.dart';
 import 'src/services/cache_manager.dart';
+import 'src/services/websocket_service.dart';
 import 'src/models/device.dart' hide Position;
 import 'src/models/position.dart';
 import 'src/models/event_model.dart';
@@ -64,6 +65,7 @@ export 'src/services/cache_interceptor.dart';
 export 'src/services/rate_limiter.dart' hide RateLimitException;
 export 'src/services/rate_limit_interceptor.dart';
 export 'src/services/request_batcher.dart';
+export 'src/services/websocket_service.dart';
 // Exceptions
 export 'src/exceptions/traccar_exceptions.dart';
 export 'src/utils/error_handler.dart';
@@ -376,5 +378,117 @@ class FlutterTraccarApi {
   /// Invalidates position cache
   Future<void> invalidatePositionCache() async {
     await _apiService.invalidatePositionCache();
+  }
+
+  // WebSocket Real-time Methods
+
+  /// Connects to WebSocket for real-time updates
+  /// 
+  /// Returns true if connection is successful, false otherwise.
+  /// Must be authenticated before connecting.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final api = FlutterTraccarApi();
+  /// await api.login(username: 'admin', password: 'admin', serverUrl: 'https://demo.traccar.org');
+  /// final connected = await api.connectWebSocket();
+  /// if (connected) {
+  ///   print('WebSocket connected successfully');
+  /// }
+  /// ```
+  Future<bool> connectWebSocket() async {
+    return await _apiService.connectWebSocket();
+  }
+
+  /// Disconnects from WebSocket
+  /// 
+  /// Example:
+  /// ```dart
+  /// await api.disconnectWebSocket();
+  /// ```
+  Future<void> disconnectWebSocket() async {
+    await _apiService.disconnectWebSocket();
+  }
+
+  /// Gets WebSocket connection status
+  bool get isWebSocketConnected => _apiService.isWebSocketConnected;
+
+  /// Stream of real-time device updates
+  /// 
+  /// Listen to this stream to receive real-time device status changes.
+  /// 
+  /// Example:
+  /// ```dart
+  /// api.deviceUpdatesStream.listen((devices) {
+  ///   print('Received ${devices.length} device updates');
+  ///   for (final device in devices) {
+  ///     print('Device ${device.name}: ${device.status}');
+  ///   }
+  /// });
+  /// ```
+  Stream<List<Device>> get deviceUpdatesStream => _apiService.deviceUpdatesStream;
+
+  /// Stream of real-time position updates
+  /// 
+  /// Listen to this stream to receive real-time position updates from devices.
+  /// 
+  /// Example:
+  /// ```dart
+  /// api.positionUpdatesStream.listen((positions) {
+  ///   print('Received ${positions.length} position updates');
+  ///   for (final position in positions) {
+  ///     print('Device ${position.deviceId}: ${position.latitude}, ${position.longitude}');
+  ///   }
+  /// });
+  /// ```
+  Stream<List<Position>> get positionUpdatesStream => _apiService.positionUpdatesStream;
+
+  /// Stream of real-time event updates
+  /// 
+  /// Listen to this stream to receive real-time events from devices.
+  /// 
+  /// Example:
+  /// ```dart
+  /// api.eventUpdatesStream.listen((events) {
+  ///   print('Received ${events.length} event updates');
+  ///   for (final event in events) {
+  ///     print('Event ${event.type} for device ${event.deviceId}');
+  ///   }
+  /// });
+  /// ```
+  Stream<List<Event>> get eventUpdatesStream => _apiService.eventUpdatesStream;
+
+  /// Stream of WebSocket connection status changes
+  /// 
+  /// Listen to this stream to monitor WebSocket connection status.
+  /// 
+  /// Example:
+  /// ```dart
+  /// api.webSocketStatusStream.listen((status) {
+  ///   switch (status) {
+  ///     case WebSocketStatus.connected:
+  ///       print('WebSocket connected');
+  ///       break;
+  ///     case WebSocketStatus.disconnected:
+  ///       print('WebSocket disconnected');
+  ///       break;
+  ///     case WebSocketStatus.error:
+  ///       print('WebSocket error');
+  ///       break;
+  ///   }
+  /// });
+  /// ```
+  Stream<WebSocketStatus> get webSocketStatusStream => _apiService.webSocketStatusStream;
+
+  /// Disposes of all resources including WebSocket connections
+  /// 
+  /// Call this method when you're done using the API to clean up resources.
+  /// 
+  /// Example:
+  /// ```dart
+  /// api.dispose();
+  /// ```
+  void dispose() {
+    _apiService.dispose();
   }
 }
