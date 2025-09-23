@@ -14,12 +14,16 @@ import 'auth_manager.dart';
 enum WebSocketStatus {
   /// WebSocket is disconnected
   disconnected,
+
   /// WebSocket is connecting
   connecting,
+
   /// WebSocket is connected and ready
   connected,
+
   /// WebSocket connection failed
   error,
+
   /// WebSocket is reconnecting
   reconnecting,
 }
@@ -28,13 +32,13 @@ enum WebSocketStatus {
 class WebSocketConfig {
   /// Maximum number of reconnection attempts
   final int maxReconnectAttempts;
-  
+
   /// Delay between reconnection attempts
   final Duration reconnectDelay;
-  
+
   /// Interval for sending heartbeat messages
   final Duration heartbeatInterval;
-  
+
   /// Whether to automatically reconnect on connection loss
   final bool autoReconnect;
 
@@ -48,21 +52,21 @@ class WebSocketConfig {
 }
 
 /// WebSocket service for real-time communication with Traccar server
-/// 
+///
 /// Provides real-time updates for devices, positions, and events through
 /// WebSocket connection with automatic reconnection and session management.
 class WebSocketService {
   final AuthManager _authManager;
   final WebSocketConfig _config;
-  
+
   WebSocketChannel? _channel;
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
-  
+
   bool _isConnected = false;
   bool _shouldReconnect = true;
   int _reconnectAttempts = 0;
-  
+
   // Stream controllers for different data types
   late final StreamController<List<Device>> _devicesController;
   late final StreamController<List<Position>> _positionsController;
@@ -71,13 +75,13 @@ class WebSocketService {
 
   /// Stream of device updates
   Stream<List<Device>> get devicesStream => _devicesController.stream;
-  
+
   /// Stream of position updates
   Stream<List<Position>> get positionsStream => _positionsController.stream;
-  
+
   /// Stream of event updates
   Stream<List<Event>> get eventsStream => _eventsController.stream;
-  
+
   /// Stream of connection status changes
   Stream<WebSocketStatus> get statusStream => _statusController.stream;
 
@@ -85,14 +89,12 @@ class WebSocketService {
   bool get isConnected => _isConnected;
 
   /// Creates a WebSocket service instance
-  /// 
+  ///
   /// [authManager] - Authentication manager for session handling
   /// [config] - WebSocket configuration options
-  WebSocketService({
-    required AuthManager authManager,
-    WebSocketConfig? config,
-  }) : _authManager = authManager,
-       _config = config ?? const WebSocketConfig() {
+  WebSocketService({required AuthManager authManager, WebSocketConfig? config})
+    : _authManager = authManager,
+      _config = config ?? const WebSocketConfig() {
     _initializeControllers();
   }
 
@@ -105,7 +107,7 @@ class WebSocketService {
   }
 
   /// Connects to the Traccar WebSocket server
-  /// 
+  ///
   /// Establishes a session first, then connects to WebSocket with session cookie.
   /// Returns true if connection is successful, false otherwise.
   Future<bool> connect() async {
@@ -155,9 +157,9 @@ class WebSocketService {
   Future<String?> _establishSession() async {
     try {
       // Get current credentials from auth manager
-    final username = _authManager.currentUsername;
-    final password = _authManager.currentPassword;
-      
+      final username = _authManager.currentUsername;
+      final password = _authManager.currentPassword;
+
       if (username == null || password == null) {
         log('WebSocket: No credentials available for session establishment');
         return null;
@@ -179,7 +181,7 @@ class WebSocketService {
           return sessionCookie;
         }
       }
-      
+
       log('WebSocket: Failed to get session cookie');
       return null;
     } catch (e) {
@@ -209,11 +211,7 @@ class WebSocketService {
       await _channel!.ready;
 
       // Listen to messages
-      _channel!.stream.listen(
-        _onMessage,
-        onError: _onError,
-        onDone: _onDone,
-      );
+      _channel!.stream.listen(_onMessage, onError: _onError, onDone: _onDone);
 
       return true;
     } catch (e) {
@@ -226,11 +224,12 @@ class WebSocketService {
   Uri _buildWebSocketUrl(String baseUrl) {
     final uri = Uri.parse(baseUrl);
     final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
-    
+
     // Only include port if it's not the default port
-    final isDefaultPort = (uri.scheme == 'https' && uri.port == 443) ||
-                         (uri.scheme == 'http' && uri.port == 80);
-    
+    final isDefaultPort =
+        (uri.scheme == 'https' && uri.port == 443) ||
+        (uri.scheme == 'http' && uri.port == 80);
+
     return Uri(
       scheme: scheme,
       host: uri.host,
@@ -268,7 +267,7 @@ class WebSocketService {
           .map((device) => Device.fromJson(device))
           .toList();
       _devicesController.add(devices);
-      log('WebSocket: Received ${devices.length} device updates');
+      //  log('WebSocket: Received ${devices.length} device updates');
     } catch (e) {
       log('WebSocket: Error parsing devices: $e');
     }
@@ -301,9 +300,7 @@ class WebSocketService {
   /// Handles event updates
   void _handleEventsUpdate(List<dynamic> eventsData) {
     try {
-      final events = eventsData
-          .map((event) => Event.fromJson(event))
-          .toList();
+      final events = eventsData.map((event) => Event.fromJson(event)).toList();
       _eventsController.add(events);
       log('WebSocket: Received ${events.length} event updates');
     } catch (e) {
@@ -354,9 +351,11 @@ class WebSocketService {
 
   /// Schedules a reconnection attempt
   void _scheduleReconnect() {
-    if (!_config.autoReconnect || 
+    if (!_config.autoReconnect ||
         _reconnectAttempts >= _config.maxReconnectAttempts) {
-      log('WebSocket: Max reconnect attempts reached or auto-reconnect disabled');
+      log(
+        'WebSocket: Max reconnect attempts reached or auto-reconnect disabled',
+      );
       return;
     }
 
@@ -364,8 +363,10 @@ class WebSocketService {
     _reconnectTimer?.cancel();
     _updateStatus(WebSocketStatus.reconnecting);
 
-    log('WebSocket: Scheduling reconnect attempt $_reconnectAttempts '
-        'in ${_config.reconnectDelay.inSeconds} seconds');
+    log(
+      'WebSocket: Scheduling reconnect attempt $_reconnectAttempts '
+      'in ${_config.reconnectDelay.inSeconds} seconds',
+    );
 
     _reconnectTimer = Timer(_config.reconnectDelay, () {
       if (_shouldReconnect) {
@@ -409,7 +410,7 @@ class WebSocketService {
   }
 
   // Test helper methods (visible for testing)
-  
+
   /// Simulates receiving a message (for testing)
   void onMessage(String message) {
     _onMessage(message);
@@ -419,7 +420,8 @@ class WebSocketService {
   WebSocketConfig get config => _config;
 
   /// Builds WebSocket URL (for testing)
-  String buildWebSocketUrl(String baseUrl) => _buildWebSocketUrl(baseUrl).toString();
+  String buildWebSocketUrl(String baseUrl) =>
+      _buildWebSocketUrl(baseUrl).toString();
 
   /// Updates status (for testing)
   void updateStatus(WebSocketStatus status) => _updateStatus(status);

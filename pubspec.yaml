@@ -1,10 +1,20 @@
 name: flutter_traccar_api
-description: "A comprehensive Dart package for integrating with Traccar GPS tracking server. Provides authentication, device management, position tracking, and reporting capabilities."
+description: "A comprehensive Dart package for integrating with Traccar GPS tracking server. Provides authentication, device management, position tracking, real-time WebSocket updates, and reporting capabilities."
 version: 0.1.0
-homepage: https://github.com/yourusername/flutter_traccar_api
-repository: https://github.com/yourusername/flutter_traccar_api
-issue_tracker: https://github.com/yourusername/flutter_traccar_api/issues
+homepage: https://github.com/ElmaallemSalah/flutter_traccar_api
+repository: https://github.com/ElmaallemSalah/flutter_traccar_api
+issue_tracker: https://github.com/ElmaallemSalah/flutter_traccar_api/issues
 documentation: https://pub.dev/documentation/flutter_traccar_api/latest/
+
+# Additional metadata for pub.dev
+topics:
+  - traccar
+  - gps
+  - tracking
+  - websocket
+  - api
+
+
 
 environment:
   sdk: ^3.9.2
@@ -26,6 +36,8 @@ dev_dependencies:
   mockito: ^5.4.4
   build_runner: ^2.4.7
   http_mock_adapter: ^0.6.1
+  async: ^2.11.0
+  stream_channel: ^2.1.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

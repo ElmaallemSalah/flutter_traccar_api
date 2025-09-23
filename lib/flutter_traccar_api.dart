@@ -1,5 +1,4 @@
 /// Flutter Traccar API Plugin
-/// Flutter Traccar API Plugin
 /// 
 /// A comprehensive Flutter plugin for integrating with Traccar GPS tracking server.
 /// Provides authentication, device management, position tracking, and reporting capabilities.

@@ -20,13 +20,11 @@ void main() {
     late WebSocketService webSocketService;
     late MockAuthManager mockAuthManager;
     late MockHttpService mockHttpService;
-    late MockWebSocketChannel mockChannel;
     late StreamController<dynamic> mockStreamController;
 
     setUp(() {
       mockAuthManager = MockAuthManager();
       mockHttpService = MockHttpService();
-      mockChannel = MockWebSocketChannel();
       mockStreamController = StreamController<dynamic>.broadcast();
 
       // Setup auth manager mocks

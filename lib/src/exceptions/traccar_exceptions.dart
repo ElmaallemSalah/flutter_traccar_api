@@ -1,5 +1,5 @@
 /// Custom exceptions for Traccar API operations
-/// 
+///
 /// This file defines specific exception types that can be thrown
 /// during various Traccar API operations for better error handling.
 
@@ -9,11 +9,7 @@ abstract class TraccarException implements Exception {
   final int? statusCode;
   final dynamic originalError;
 
-  const TraccarException(
-    this.message, {
-    this.statusCode,
-    this.originalError,
-  });
+  const TraccarException(this.message, {this.statusCode, this.originalError});
 
   @override
   String toString() {
@@ -68,11 +64,7 @@ class NetworkException extends TraccarException {
 
 /// Exception thrown when server returns an error
 class ServerException extends TraccarException {
-  const ServerException(
-    super.message, {
-    super.statusCode,
-    super.originalError,
-  });
+  const ServerException(super.message, {super.statusCode, super.originalError});
 
   @override
   String toString() {
@@ -139,10 +131,8 @@ class RateLimitException extends TraccarException {
 
 /// Exception thrown when secure storage operations fail
 class StorageException extends TraccarException {
-  const StorageException(
-    super.message, {
-    super.originalError,
-  }) : super(statusCode: null);
+  const StorageException(super.message, {super.originalError})
+    : super(statusCode: null);
 
   @override
   String toString() {
@@ -152,10 +142,8 @@ class StorageException extends TraccarException {
 
 /// Exception thrown when configuration is invalid
 class ConfigurationException extends TraccarException {
-  const ConfigurationException(
-    super.message, {
-    super.originalError,
-  }) : super(statusCode: null);
+  const ConfigurationException(super.message, {super.originalError})
+    : super(statusCode: null);
 
   @override
   String toString() {
@@ -201,7 +189,7 @@ class CommandException extends TraccarException {
     final details = <String>[];
     if (commandType != null) details.add('Command: $commandType');
     if (deviceId != null) details.add('Device: $deviceId');
-    
+
     if (details.isNotEmpty) {
       return 'CommandException (${details.join(', ')}): $message';
     }
@@ -229,9 +217,11 @@ class ReportException extends TraccarException {
     final details = <String>[];
     if (reportType != null) details.add('Type: $reportType');
     if (from != null && to != null) {
-      details.add('Period: ${from!.toIso8601String()} - ${to!.toIso8601String()}');
+      details.add(
+        'Period: ${from!.toIso8601String()} - ${to!.toIso8601String()}',
+      );
     }
-    
+
     if (details.isNotEmpty) {
       return 'ReportException (${details.join(', ')}): $message';
     }
@@ -263,11 +253,8 @@ class GeofenceException extends TraccarException {
 class CacheException extends TraccarException {
   final String? cacheKey;
 
-  const CacheException(
-    super.message, {
-    this.cacheKey,
-    super.originalError,
-  }) : super(statusCode: null);
+  const CacheException(super.message, {this.cacheKey, super.originalError})
+    : super(statusCode: null);
 
   @override
   String toString() {

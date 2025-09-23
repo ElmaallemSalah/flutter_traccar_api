@@ -10,9 +10,9 @@ class RealtimeDashboard extends StatefulWidget {
   final FlutterTraccarApi api;
 
   const RealtimeDashboard({
-    Key? key,
+    super.key,
     required this.api,
-  }) : super(key: key);
+  });
 
   @override
   State<RealtimeDashboard> createState() => _RealtimeDashboardState();
@@ -29,7 +29,6 @@ class _RealtimeDashboardState extends State<RealtimeDashboard>
   // Connection state
   WebSocketStatus _connectionStatus = WebSocketStatus.disconnected;
   bool _isLoading = true;
-  String? _error;
   
   // Stream subscriptions
   StreamSubscription<List<Device>>? _devicesSubscription;
@@ -64,7 +63,6 @@ class _RealtimeDashboardState extends State<RealtimeDashboard>
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Failed to initialize: $e';
         });
         _showError('Failed to initialize: $e');
       }
@@ -233,7 +231,6 @@ class _RealtimeDashboardState extends State<RealtimeDashboard>
         tooltip = 'Connection Error';
         break;
       case WebSocketStatus.disconnected:
-      default:
         color = Colors.grey;
         icon = Icons.circle;
         tooltip = 'Disconnected';

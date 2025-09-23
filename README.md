@@ -77,7 +77,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_traccar_api: ^1.0.0
+  flutter_traccar_api: ^0.1.0
   # Required for secure storage
   flutter_secure_storage: ^9.0.0
   # Required for caching
