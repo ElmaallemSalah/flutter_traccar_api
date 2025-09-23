@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as status;
@@ -153,9 +154,21 @@ class WebSocketService {
   /// Establishes a session and returns the session cookie
   Future<String?> _establishSession() async {
     try {
-      // Use the existing authenticated session from httpService
-      // The httpService should already have authentication headers set
-      final response = await _authManager.httpService.get('/api/session');
+      // Get current credentials from auth manager
+    final username = _authManager.currentUsername;
+    final password = _authManager.currentPassword;
+      
+      if (username == null || password == null) {
+        log('WebSocket: No credentials available for session establishment');
+        return null;
+      }
+
+      // Use POST request like login to establish session
+      final response = await _authManager.httpService.post(
+        '/api/session',
+        data: {'email': username, 'password': password},
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
 
       if (response.statusCode == 200) {
         // Extract session cookie from response headers

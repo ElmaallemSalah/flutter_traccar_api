@@ -138,8 +138,9 @@ class HttpService with BatchingCapable {
             options.headers['Authorization'] = 'Basic $_basicAuthToken';
           }
 
-          // Set default content type if not already set
-          if (!options.headers.containsKey('Content-Type')) {
+          // Set default content type only for requests with body (POST, PUT, PATCH)
+          if (!options.headers.containsKey('Content-Type') && 
+              ['POST', 'PUT', 'PATCH'].contains(options.method.toUpperCase())) {
             options.headers['Content-Type'] = 'application/json';
           }
           

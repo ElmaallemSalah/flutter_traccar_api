@@ -160,6 +160,9 @@ class AuthManager {
   /// Gets the current username (if authenticated)
   String? get currentUsername => _currentUsername;
 
+  /// Gets the current password (if authenticated)
+  String? get currentPassword => _currentPassword;
+
   /// Gets the current base URL (if set)
   String? get baseUrl => _baseUrl;
 
