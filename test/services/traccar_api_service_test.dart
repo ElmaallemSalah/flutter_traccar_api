@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_traccar_api/src/services/traccar_api_service.dart';
-import 'package:flutter_traccar_api/src/services/auth_manager.dart';
-import 'package:flutter_traccar_api/src/services/http_service.dart';
 import 'package:flutter_traccar_api/src/models/device.dart' hide Position;
 import 'package:flutter_traccar_api/src/models/position.dart';
 import 'package:flutter_traccar_api/src/models/session.dart';

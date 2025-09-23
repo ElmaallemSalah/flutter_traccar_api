@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
 import 'http_service.dart';
 
 /// Authentication manager that handles login, logout, and credential caching
@@ -18,9 +19,23 @@ class AuthManager {
   bool _isAuthenticated = false;
 
   /// Creates an instance of AuthManager with secure storage and HTTP service
-  AuthManager({FlutterSecureStorage? secureStorage, HttpService? httpService})
-    : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
-      _httpService = httpService ?? HttpService();
+  AuthManager({
+    FlutterSecureStorage? secureStorage,
+    HttpService? httpService,
+    HttpClientConfig? httpConfig,
+  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+       _httpService =
+           httpService ??
+           HttpService(
+             config:
+                 httpConfig ??
+                 const HttpClientConfig(
+                   enableLogging: kDebugMode,
+                   maxRetries: 3,
+                   connectTimeout: Duration(seconds: 30),
+                   receiveTimeout: Duration(seconds: 30),
+                 ),
+           );
 
   /// Initializes the auth manager by loading cached credentials
   Future<void> initialize() async {
@@ -63,6 +78,7 @@ class AuthManager {
       final response = await _httpService.post(
         '/api/session',
         data: {'email': username, 'password': password},
+        options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
       if (response.statusCode == 200) {
@@ -72,12 +88,10 @@ class AuthManager {
         _currentPassword = password;
         _baseUrl = baseUrl;
         _isAuthenticated = true;
-        debugPrint('Login successful');
         return true;
       } else {
         _httpService.clearAuthToken();
         _isAuthenticated = false;
-        debugPrint('Login failed');
         return false;
       }
     } catch (e) {

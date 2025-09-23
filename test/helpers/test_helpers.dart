@@ -1,5 +1,4 @@
 import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_traccar_api/src/services/http_service.dart';

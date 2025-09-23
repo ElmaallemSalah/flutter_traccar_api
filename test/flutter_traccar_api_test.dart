@@ -1,26 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:flutter_traccar_api/flutter_traccar_api.dart';
-import 'package:flutter_traccar_api/src/services/traccar_api_service.dart';
-import 'package:flutter_traccar_api/src/models/device.dart' hide Position;
-import 'package:flutter_traccar_api/src/models/position.dart';
-import 'package:flutter_traccar_api/src/models/session.dart';
-import 'package:flutter_traccar_api/src/models/event_model.dart';
-import 'package:flutter_traccar_api/src/models/trips.dart';
-import 'package:flutter_traccar_api/src/models/stops_report.dart';
-import 'package:flutter_traccar_api/src/models/summary_report.dart';
-import 'package:flutter_traccar_api/src/models/report_distance.dart';
-
-import 'helpers/test_helpers.dart';
-import 'helpers/test_helpers.mocks.dart';
 
 void main() {
   group('FlutterTraccarApi Tests', () {
     late FlutterTraccarApi api;
-    late MockTraccarApiService mockApiService;
 
     setUp(() {
-      mockApiService = MockTraccarApiService();
       api = FlutterTraccarApi();
       
       // Note: In a real implementation, we would need dependency injection

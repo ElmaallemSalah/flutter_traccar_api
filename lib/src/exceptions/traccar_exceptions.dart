@@ -162,3 +162,118 @@ class ConfigurationException extends TraccarException {
     return 'ConfigurationException: $message';
   }
 }
+
+/// Exception thrown when device operations fail
+class DeviceException extends TraccarException {
+  final String? deviceId;
+
+  const DeviceException(
+    super.message, {
+    this.deviceId,
+    super.statusCode,
+    super.originalError,
+  });
+
+  @override
+  String toString() {
+    if (deviceId != null) {
+      return 'DeviceException (Device: $deviceId): $message';
+    }
+    return 'DeviceException: $message';
+  }
+}
+
+/// Exception thrown when command operations fail
+class CommandException extends TraccarException {
+  final String? commandType;
+  final String? deviceId;
+
+  const CommandException(
+    super.message, {
+    this.commandType,
+    this.deviceId,
+    super.statusCode,
+    super.originalError,
+  });
+
+  @override
+  String toString() {
+    final details = <String>[];
+    if (commandType != null) details.add('Command: $commandType');
+    if (deviceId != null) details.add('Device: $deviceId');
+    
+    if (details.isNotEmpty) {
+      return 'CommandException (${details.join(', ')}): $message';
+    }
+    return 'CommandException: $message';
+  }
+}
+
+/// Exception thrown when report generation fails
+class ReportException extends TraccarException {
+  final String? reportType;
+  final DateTime? from;
+  final DateTime? to;
+
+  const ReportException(
+    super.message, {
+    this.reportType,
+    this.from,
+    this.to,
+    super.statusCode,
+    super.originalError,
+  });
+
+  @override
+  String toString() {
+    final details = <String>[];
+    if (reportType != null) details.add('Type: $reportType');
+    if (from != null && to != null) {
+      details.add('Period: ${from!.toIso8601String()} - ${to!.toIso8601String()}');
+    }
+    
+    if (details.isNotEmpty) {
+      return 'ReportException (${details.join(', ')}): $message';
+    }
+    return 'ReportException: $message';
+  }
+}
+
+/// Exception thrown when geofence operations fail
+class GeofenceException extends TraccarException {
+  final String? geofenceId;
+
+  const GeofenceException(
+    super.message, {
+    this.geofenceId,
+    super.statusCode,
+    super.originalError,
+  });
+
+  @override
+  String toString() {
+    if (geofenceId != null) {
+      return 'GeofenceException (Geofence: $geofenceId): $message';
+    }
+    return 'GeofenceException: $message';
+  }
+}
+
+/// Exception thrown when caching operations fail
+class CacheException extends TraccarException {
+  final String? cacheKey;
+
+  const CacheException(
+    super.message, {
+    this.cacheKey,
+    super.originalError,
+  }) : super(statusCode: null);
+
+  @override
+  String toString() {
+    if (cacheKey != null) {
+      return 'CacheException (Key: $cacheKey): $message';
+    }
+    return 'CacheException: $message';
+  }
+}

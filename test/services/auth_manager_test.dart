@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_traccar_api/src/services/auth_manager.dart';
-import 'package:flutter_traccar_api/src/services/http_service.dart';
 
 import '../helpers/test_helpers.dart';
 import '../helpers/test_helpers.mocks.dart';

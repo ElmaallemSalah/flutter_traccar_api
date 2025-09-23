@@ -1,4 +1,5 @@
 /// Flutter Traccar API Plugin
+/// Flutter Traccar API Plugin
 /// 
 /// A comprehensive Flutter plugin for integrating with Traccar GPS tracking server.
 /// Provides authentication, device management, position tracking, and reporting capabilities.
@@ -11,11 +12,15 @@
 /// - Secure credential storage
 
 import 'src/services/traccar_api_service.dart';
+import 'src/services/http_service.dart';
+import 'src/services/rate_limiter.dart';
+import 'src/services/request_batcher.dart';
+import 'src/services/cache_manager.dart';
 import 'src/models/device.dart' hide Position;
 import 'src/models/position.dart';
 import 'src/models/event_model.dart';
 import 'src/models/command.dart';
-import 'src/models/notification.dart';
+
 import 'src/models/geofence.dart';
 import 'src/models/driver.dart';
 import 'src/models/maintenance.dart';
@@ -30,7 +35,7 @@ export 'src/models/device.dart' hide Position, Attributes;
 export 'src/models/position.dart';
 export 'src/models/event_model.dart' hide Attributes;
 export 'src/models/command.dart' hide Attributes;
-export 'src/models/notification.dart';
+
 export 'src/models/geofence.dart';
 export 'src/models/driver.dart';
 export 'src/models/maintenance.dart';
@@ -54,6 +59,11 @@ export 'src/models/attribute.dart';
 export 'src/services/traccar_api_service.dart';
 export 'src/services/auth_manager.dart';
 export 'src/services/http_service.dart';
+export 'src/services/cache_manager.dart';
+export 'src/services/cache_interceptor.dart';
+export 'src/services/rate_limiter.dart' hide RateLimitException;
+export 'src/services/rate_limit_interceptor.dart';
+export 'src/services/request_batcher.dart';
 // Exceptions
 export 'src/exceptions/traccar_exceptions.dart';
 export 'src/utils/error_handler.dart';
@@ -63,16 +73,22 @@ export 'src/utils/error_handler.dart';
 /// This is the primary interface for interacting with Traccar server.
 /// It provides authentication, device management, and reporting capabilities.
 class FlutterTraccarApi {
-  static final FlutterTraccarApi _instance = FlutterTraccarApi._internal();
+  static FlutterTraccarApi? _instance;
   late final TraccarApiService _apiService;
   
   /// Private constructor for singleton pattern
-  FlutterTraccarApi._internal() {
-    _apiService = TraccarApiService();
+  FlutterTraccarApi._internal({HttpClientConfig? httpConfig}) {
+    _apiService = TraccarApiService(httpConfig: httpConfig);
   }
   
   /// Gets the singleton instance of FlutterTraccarApi
-  factory FlutterTraccarApi() => _instance;
+  /// 
+  /// [httpConfig] - Optional HTTP client configuration for advanced features
+  /// like retry logic, timeouts, and logging. Only used on first call.
+  factory FlutterTraccarApi({HttpClientConfig? httpConfig}) {
+    _instance ??= FlutterTraccarApi._internal(httpConfig: httpConfig);
+    return _instance!;
+  }
   
   /// Initializes the API service
   /// Should be called before using any other methods
@@ -296,5 +312,69 @@ class FlutterTraccarApi {
       from: from,
       to: to,
     );
+  }
+
+  // Rate Limiting Methods
+
+  /// Gets current rate limit status
+  RateLimitStatus? getRateLimitStatus() {
+    return _apiService.getRateLimitStatus();
+  }
+
+  /// Resets the rate limiter
+  void resetRateLimit() {
+    _apiService.resetRateLimit();
+  }
+
+  // Batching Methods
+
+  /// Gets batch statistics
+  BatchStats? getBatchingStats() {
+    return _apiService.getBatchingStats();
+  }
+
+  /// Flushes all pending batches
+  Future<void> flushAllBatches() async {
+    await _apiService.flushAllBatches();
+  }
+
+  /// Gets devices using batched request (if batching is enabled)
+  Future<List<Device>> getDevicesBatched() async {
+    return await _apiService.getDevicesBatched();
+  }
+
+  /// Gets positions using batched request (if batching is enabled)
+  Future<List<Position>> getPositionsBatched({
+    List<int>? deviceIds,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    return await _apiService.getPositionsBatched(
+      deviceIds: deviceIds,
+      from: from,
+      to: to,
+    );
+  }
+
+  // Cache Management Methods
+
+  /// Gets cache statistics
+  Future<CacheStats> getCacheStats() async {
+    return await _apiService.getCacheStats();
+  }
+
+  /// Clears all cache
+  Future<void> clearCache() async {
+    await _apiService.clearCache();
+  }
+
+  /// Invalidates device cache
+  Future<void> invalidateDeviceCache() async {
+    await _apiService.invalidateDeviceCache();
+  }
+
+  /// Invalidates position cache
+  Future<void> invalidatePositionCache() async {
+    await _apiService.invalidatePositionCache();
   }
 }

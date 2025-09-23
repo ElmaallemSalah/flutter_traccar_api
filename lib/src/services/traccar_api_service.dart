@@ -2,7 +2,7 @@ import '../models/device.dart' hide Position;
 import '../models/position.dart';
 import '../models/event_model.dart';
 import '../models/command.dart';
-import '../models/notification.dart';
+
 import '../models/geofence.dart';
 import '../models/driver.dart';
 import '../models/maintenance.dart';
@@ -13,6 +13,9 @@ import '../models/summary_report.dart';
 import '../models/report_distance.dart';
 import 'auth_manager.dart';
 import 'http_service.dart';
+import 'cache_manager.dart';
+import 'rate_limiter.dart';
+import 'request_batcher.dart';
 
 /// Main Traccar API service that provides all API endpoints
 /// with authentication and caching support
@@ -21,8 +24,10 @@ class TraccarApiService {
   late final HttpService _httpService;
 
   /// Creates an instance of TraccarApiService
-  TraccarApiService({AuthManager? authManager})
-      : _authManager = authManager ?? AuthManager() {
+  TraccarApiService({
+    AuthManager? authManager,
+    HttpClientConfig? httpConfig,
+  }) : _authManager = authManager ?? AuthManager(httpConfig: httpConfig) {
     _httpService = _authManager.httpService;
   }
 
@@ -362,6 +367,114 @@ class TraccarApiService {
       return [];
     } catch (e) {
       throw Exception('Failed to get distance reports: $e');
+    }
+  }
+
+  // Cache Management Methods
+
+  /// Get cache manager instance
+  CacheManager get cacheManager => _httpService.cacheManager;
+
+  /// Clear all cached API responses
+  Future<void> clearCache() async {
+    await _httpService.clearCache();
+  }
+
+  /// Invalidate cache for specific endpoint
+  Future<void> invalidateCache(String endpoint) async {
+    await _httpService.invalidateCache(endpoint);
+  }
+
+  /// Get cache statistics
+  Future<CacheStats> getCacheStats() async {
+    return await _httpService.getCacheStats();
+  }
+
+  /// Invalidate device-related cache
+  Future<void> invalidateDeviceCache() async {
+    await invalidateCache('/api/devices');
+  }
+
+  /// Invalidate position-related cache
+  Future<void> invalidatePositionCache() async {
+    await invalidateCache('/api/positions');
+  }
+
+  /// Invalidate geofence-related cache
+  Future<void> invalidateGeofenceCache() async {
+    await invalidateCache('/api/geofences');
+  }
+
+  // Rate Limiting Methods
+
+  /// Get current rate limit status
+  RateLimitStatus? getRateLimitStatus() {
+    return _httpService.getRateLimitStatus();
+  }
+
+  /// Reset rate limiter
+  void resetRateLimit() {
+    _httpService.resetRateLimit();
+  }
+
+  // Batching Methods
+
+  /// Get batch statistics
+  BatchStats? getBatchingStats() {
+    return _httpService.getBatchingStats();
+  }
+
+  /// Flush all pending batches
+  Future<void> flushAllBatches() async {
+    await _httpService.flushAllBatches();
+  }
+
+  /// Get devices using batched request (if batching is enabled)
+  Future<List<Device>> getDevicesBatched() async {
+    try {
+      final response = await _httpService.batchedGet('/api/devices');
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => Device.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to get devices: $e');
+    }
+  }
+
+  /// Get positions using batched request (if batching is enabled)
+  Future<List<Position>> getPositionsBatched({
+    List<int>? deviceIds,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {};
+      
+      if (deviceIds != null && deviceIds.isNotEmpty) {
+        queryParams['deviceId'] = deviceIds;
+      }
+      if (from != null) {
+        queryParams['from'] = from.toIso8601String();
+      }
+      if (to != null) {
+        queryParams['to'] = to.toIso8601String();
+      }
+
+      final response = await _httpService.batchedGet(
+        '/api/positions',
+        queryParameters: queryParams,
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => Position.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to get positions: $e');
     }
   }
 }

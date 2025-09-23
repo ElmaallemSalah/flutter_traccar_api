@@ -54,7 +54,6 @@ class ErrorHandler {
         );
         
       case DioExceptionType.unknown:
-      default:
         return NetworkException(
           'Network error: ${error.message ?? "Unknown error"}',
           originalError: error,
@@ -185,7 +184,7 @@ class ErrorHandler {
   }
   
   /// Validates required parameters and throws ValidationException if any are missing
-  static void validateRequired(Map<String, dynamic?> parameters) {
+  static void validateRequired(Map<String, dynamic> parameters) {
     final missingFields = <String>[];
     
     parameters.forEach((key, value) {
@@ -228,5 +227,191 @@ class ErrorHandler {
         },
       );
     }
+  }
+
+  /// Validates device ID format
+  static void validateDeviceId(String? deviceId) {
+    if (deviceId == null || deviceId.isEmpty) {
+      throw ValidationException(
+        'Device ID is required',
+        fieldErrors: {'deviceId': ['Device ID cannot be empty']},
+      );
+    }
+    
+    if (deviceId.length > 100) {
+      throw ValidationException(
+        'Device ID is too long',
+        fieldErrors: {'deviceId': ['Device ID must be less than 100 characters']},
+      );
+    }
+  }
+
+  /// Validates pagination parameters
+  static void validatePagination({int? page, int? limit}) {
+    if (page != null && page < 0) {
+      throw ValidationException(
+        'Page number cannot be negative',
+        fieldErrors: {'page': ['Page number must be 0 or greater']},
+      );
+    }
+    
+    if (limit != null && (limit <= 0 || limit > 1000)) {
+      throw ValidationException(
+        'Invalid limit value',
+        fieldErrors: {'limit': ['Limit must be between 1 and 1000']},
+      );
+    }
+  }
+
+  /// Validates coordinates
+  static void validateCoordinates({double? latitude, double? longitude}) {
+    if (latitude != null && (latitude < -90 || latitude > 90)) {
+      throw ValidationException(
+        'Invalid latitude value',
+        fieldErrors: {'latitude': ['Latitude must be between -90 and 90']},
+      );
+    }
+    
+    if (longitude != null && (longitude < -180 || longitude > 180)) {
+      throw ValidationException(
+        'Invalid longitude value',
+        fieldErrors: {'longitude': ['Longitude must be between -180 and 180']},
+      );
+    }
+  }
+
+  /// Wraps async operations with error handling
+  static Future<T> wrapAsync<T>(
+    Future<T> Function() operation, {
+    String? context,
+  }) async {
+    try {
+      return await operation();
+    } catch (error) {
+      final traccarError = handleError(error);
+      
+      // Add context to error message if provided
+      if (context != null) {
+        throw _addContextToError(traccarError, context);
+      }
+      
+      throw traccarError;
+    }
+  }
+
+  /// Wraps sync operations with error handling
+  static T wrapSync<T>(
+    T Function() operation, {
+    String? context,
+  }) {
+    try {
+      return operation();
+    } catch (error) {
+      final traccarError = handleError(error);
+      
+      // Add context to error message if provided
+      if (context != null) {
+        throw _addContextToError(traccarError, context);
+      }
+      
+      throw traccarError;
+    }
+  }
+
+  /// Adds context information to an existing error
+  static TraccarException _addContextToError(TraccarException error, String context) {
+    final contextualMessage = '$context: ${error.message}';
+    
+    // Return the same type of exception with updated message
+    if (error is AuthenticationException) {
+      return AuthenticationException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        originalError: error.originalError,
+      );
+    } else if (error is AuthorizationException) {
+      return AuthorizationException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        originalError: error.originalError,
+      );
+    } else if (error is ValidationException) {
+      return ValidationException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        fieldErrors: error.fieldErrors,
+        originalError: error.originalError,
+      );
+    } else if (error is NotFoundException) {
+      return NotFoundException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        originalError: error.originalError,
+      );
+    } else if (error is NetworkException) {
+      return NetworkException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        originalError: error.originalError,
+      );
+    } else if (error is ServerException) {
+      return ServerException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        originalError: error.originalError,
+      );
+    } else if (error is RateLimitException) {
+      return RateLimitException(
+        contextualMessage,
+        statusCode: error.statusCode,
+        retryAfter: error.retryAfter,
+        originalError: error.originalError,
+      );
+    }
+    
+    // For other types, return a generic TraccarException
+    return NetworkException(
+      contextualMessage,
+      statusCode: error.statusCode,
+      originalError: error.originalError,
+    );
+  }
+
+  /// Checks if an error is retryable
+  static bool isRetryableError(TraccarException error) {
+    // Network errors are generally retryable
+    if (error is NetworkException) {
+      return true;
+    }
+    
+    // Server errors (5xx) are retryable
+    if (error is ServerException) {
+      final statusCode = error.statusCode;
+      return statusCode != null && statusCode >= 500 && statusCode < 600;
+    }
+    
+    // Rate limit errors are retryable after waiting
+    if (error is RateLimitException) {
+      return true;
+    }
+    
+    // Other errors are generally not retryable
+    return false;
+  }
+
+  /// Gets suggested retry delay for retryable errors
+  static Duration? getRetryDelay(TraccarException error) {
+    if (error is RateLimitException && error.retryAfter != null) {
+      final now = DateTime.now();
+      final delay = error.retryAfter!.difference(now);
+      return delay.isNegative ? Duration.zero : delay;
+    }
+    
+    if (isRetryableError(error)) {
+      // Default exponential backoff starting at 1 second
+      return const Duration(seconds: 1);
+    }
+    
+    return null;
   }
 }
